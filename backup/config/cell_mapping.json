@@ -1,0 +1,45 @@
+{
+    "sheets": {
+        "AAA": {
+            "excel_sheet_name": "AAA",
+
+            "fields": {
+                "担当者":     "B3",
+                "実施日":     "C3",
+                "議題":       "D3",
+                "決定事項":   "E3",
+                "備考":       "F3"
+            },
+
+            "ranges": {
+                "データ行1": {
+                    "start_cell": "C5",
+                    "direction": "right",
+                    "count": 30
+                },
+                "データ行2": {
+                    "start_cell": "C6",
+                    "direction": "right",
+                    "count": 30
+                }
+            }
+        },
+
+        "BBB": {
+            "excel_sheet_name": "BBB",
+
+            "fields": {
+                "担当者":   "B2",
+                "期間":     "C2"
+            },
+
+            "ranges": {
+                "縦データ": {
+                    "start_cell": "D2",
+                    "direction": "down",
+                    "count": 20
+                }
+            }
+        }
+    }
+}

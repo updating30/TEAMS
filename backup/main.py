@@ -38,20 +38,6 @@ def load_config() -> dict:
 
 
 # ---------------------------------------------------------------------------
-# ファイル読み込み（文字コード自動判別）
-# ---------------------------------------------------------------------------
-
-def _read_text(filepath: Path) -> str:
-    """UTF-8 → CP932 の順でファイルを読む。"""
-    for enc in ("utf-8-sig", "utf-8", "cp932", "shift_jis"):
-        try:
-            return filepath.read_text(encoding=enc)
-        except (UnicodeDecodeError, LookupError):
-            continue
-    raise ValueError(f"ファイルの文字コードを判別できません: {filepath}")
-
-
-# ---------------------------------------------------------------------------
 # VTT パーサー（ブロック単位で返す。結合しない）
 # ---------------------------------------------------------------------------
 
@@ -60,7 +46,8 @@ def parse_vtt(filepath: Path) -> list[dict]:
     Teams .vtt を解析し {'speaker': str, 'text': str} のリストを返す。
     ブロックは結合せず、VTT のキュー単位で1要素とする。
     """
-    content = _read_text(filepath)
+    with open(filepath, encoding="utf-8") as f:
+        content = f.read()
 
     messages: list[dict] = []
     for block in re.split(r"\n\n+", content.strip()):
@@ -100,9 +87,9 @@ def parse_vtt(filepath: Path) -> list[dict]:
 
 
 def parse_text_file(filepath: Path) -> list[dict]:
-    """テキストファイルを行単位で読む。"""
+    """テスト用：テキストファイルを行単位で読む。"""
     messages = []
-    for line in _read_text(filepath).splitlines():
+    for line in filepath.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if line:
             messages.append({"speaker": "", "text": line})
@@ -245,14 +232,8 @@ def fill_excel(
     config: dict,
     output_path: Path,
 ) -> None:
-    from openpyxl.utils import get_column_letter
     wb = openpyxl.load_workbook(template_path)
     sheets_config: dict = config.get("sheets", {})
-
-    # auto_advance_column 用: シートごとの「現在の書き込み列（絶対値）」を管理
-    # ・初回: テンプレートの先頭フィールド行を見て最初の空き列を探す
-    # ・アンカーフィールド（fields の先頭）が再度現れるたびに +1 列進める
-    sheet_current_col: dict[str, int] = {}
 
     for cmd in commands:
         parts   = cmd["parts"]
@@ -282,32 +263,11 @@ def fill_excel(
             if field_or_cell not in fields:
                 print(f"  警告: フィールド '{field_or_cell}' が設定にありません")
                 continue
-
-            if sheet_cfg.get("auto_advance_column"):
-                anchor_field = next(iter(fields))          # fields の先頭がアンカー
-                anchor_col, anchor_row = _cell_to_col_row(fields[anchor_field])
-
-                if raw_key not in sheet_current_col:
-                    # 初回: テンプレート上の最初の空き列を探す
-                    col = anchor_col
-                    while ws.cell(row=anchor_row, column=col).value is not None:
-                        col += 1
-                    sheet_current_col[raw_key] = col
-                elif field_or_cell == anchor_field:
-                    # アンカーフィールドが再登場 = 新しいエントリ → 1列進める
-                    sheet_current_col[raw_key] += 1
-
-                current_col = sheet_current_col[raw_key]
-                field_base_col, row = _cell_to_col_row(fields[field_or_cell])
-                actual_col = field_base_col + (current_col - anchor_col)
-            else:
-                field_base_col, row = _cell_to_col_row(fields[field_or_cell])
-                actual_col = field_base_col
-
+            cell_addr = fields[field_or_cell]
+            # 値は parts[2] のみ（1フィールドに1値）
             value = values[0]
-            ws.cell(row=row, column=actual_col, value=value)
-            actual_addr = f"{get_column_letter(actual_col)}{row}"
-            print(f"  書込 [{speaker}]: {raw_key}/{field_or_cell} → {actual_addr} = {value!r}")
+            ws[cell_addr] = value
+            print(f"  書込 [{speaker}]: {raw_key}/{field_or_cell} → {cell_addr} = {value!r}")
 
         else:
             # ---- 連続データ ----

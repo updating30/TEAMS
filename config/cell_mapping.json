@@ -1,45 +1,16 @@
 {
     "sheets": {
-        "AAA": {
-            "excel_sheet_name": "AAA",
+        "Sheet1": {
+            "excel_sheet_name": "Sheet1",
+            "auto_advance_column": true,
 
             "fields": {
-                "担当者":     "B3",
-                "実施日":     "C3",
-                "議題":       "D3",
-                "決定事項":   "E3",
-                "備考":       "F3"
+                "会社名": "C2",
+                "名前":   "C3",
+                "年齢":   "C4"
             },
 
-            "ranges": {
-                "データ行1": {
-                    "start_cell": "C5",
-                    "direction": "right",
-                    "count": 30
-                },
-                "データ行2": {
-                    "start_cell": "C6",
-                    "direction": "right",
-                    "count": 30
-                }
-            }
-        },
-
-        "BBB": {
-            "excel_sheet_name": "BBB",
-
-            "fields": {
-                "担当者":   "B2",
-                "期間":     "C2"
-            },
-
-            "ranges": {
-                "縦データ": {
-                    "start_cell": "D2",
-                    "direction": "down",
-                    "count": 20
-                }
-            }
+            "ranges": {}
         }
     }
 }
